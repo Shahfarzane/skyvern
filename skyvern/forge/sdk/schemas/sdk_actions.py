@@ -23,6 +23,12 @@ class SdkActionBase(BaseModel):
 
     type: str = Field(..., description="The type of action")
 
+    def get_navigation_goal(self) -> str | None:
+        return None
+
+    def get_navigation_payload(self) -> dict[str, Any] | None:
+        return None
+
 
 # Specific action types
 class ClickAction(SdkActionBase):
@@ -33,6 +39,12 @@ class ClickAction(SdkActionBase):
     intention: str = Field(default="", description="The intention or goal of the click")
     data: str | dict[str, Any] | None = Field(None, description="Additional context data")
     timeout: float = Field(default=settings.BROWSER_ACTION_TIMEOUT_MS, description="Timeout in milliseconds")
+
+    def get_navigation_goal(self) -> str | None:
+        return self.intention
+
+    def get_navigation_payload(self) -> dict[str, Any] | None:
+        return self.data
 
 
 class InputTextAction(SdkActionBase):
@@ -47,6 +59,12 @@ class InputTextAction(SdkActionBase):
     totp_url: str | None = Field(None, description="TOTP URL for input_text actions")
     timeout: float = Field(default=settings.BROWSER_ACTION_TIMEOUT_MS, description="Timeout in milliseconds")
 
+    def get_navigation_goal(self) -> str | None:
+        return self.intention
+
+    def get_navigation_payload(self) -> dict[str, Any] | None:
+        return self.data
+
 
 class SelectOptionAction(SdkActionBase):
     """Select option action parameters."""
@@ -58,6 +76,12 @@ class SelectOptionAction(SdkActionBase):
     data: str | dict[str, Any] | None = Field(None, description="Additional context data")
     timeout: float = Field(default=settings.BROWSER_ACTION_TIMEOUT_MS, description="Timeout in milliseconds")
 
+    def get_navigation_goal(self) -> str | None:
+        return self.intention
+
+    def get_navigation_payload(self) -> dict[str, Any] | None:
+        return self.data
+
 
 class UploadFileAction(SdkActionBase):
     """Upload file action parameters."""
@@ -68,6 +92,15 @@ class UploadFileAction(SdkActionBase):
     intention: str = Field(default="", description="The intention or goal of the upload")
     data: str | dict[str, Any] | None = Field(None, description="Additional context data")
     timeout: float = Field(default=settings.BROWSER_ACTION_TIMEOUT_MS, description="Timeout in milliseconds")
+
+    def get_navigation_goal(self) -> str | None:
+        return self.intention
+
+    def get_navigation_payload(self) -> dict[str, Any] | None:
+        data = self.data or {}
+        if "files" not in data:
+            data["files"] = self.file_url
+        return data
 
 
 class ActAction(SdkActionBase):
@@ -87,6 +120,12 @@ class ExtractAction(SdkActionBase):
     error_code_mapping: dict[str, str] | None = Field(None, description="Error code mapping for extraction")
     intention: str | None = Field(None, description="The intention or goal of the extraction")
     data: str | dict[str, Any] | None = Field(None, description="Additional context data")
+
+    def get_navigation_goal(self) -> str | None:
+        return self.intention
+
+    def get_navigation_payload(self) -> dict[str, Any] | None:
+        return self.data
 
 
 # Discriminated union of all action types
